@@ -1,15 +1,19 @@
-import Habit from "../Model/habbitModel.js";
-
-
+import Habit from '../Model/habbitModel.js'; // Adjust the path based on your project structure
 
 // Create a new habit
 export const createHabit = async (req, res) => {
+    console.log("Request received:", req.body); // Log the incoming request
+    if (!req.body.title || !req.body.description) {
+        return res.status(400).json({ message: 'Title and description are required.' });
+    }
+    
     try {
         const { title, description } = req.body;
         const newHabit = new Habit({ title, description });
         await newHabit.save();
         res.status(201).json(newHabit);
     } catch (error) {
+        console.error("Error:", error);
         res.status(500).json({ message: 'Error creating habit', error });
     }
 };
@@ -20,56 +24,44 @@ export const getAllHabits = async (req, res) => {
         const habits = await Habit.find();
         res.status(200).json(habits);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error fetching habits', error });
     }
 };
 
-// Get a habit by ID
+// Get habit by ID
 export const getHabitById = async (req, res) => {
     try {
         const habit = await Habit.findById(req.params.id);
-        if (!habit) {
-            return res.status(404).json({ message: 'Habit not found' });
-        }
+        if (!habit) return res.status(404).json({ message: 'Habit not found' });
         res.status(200).json(habit);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error fetching habit', error });
     }
 };
 
-// Update a habit
+// Update habit by ID
 export const updateHabit = async (req, res) => {
     try {
-        const habit = await Habit.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!habit) {
-            return res.status(404).json({ message: 'Habit not found' });
-        }
-        res.status(200).json(habit);
+        const { title, description } = req.body;
+        const updatedHabit = await Habit.findByIdAndUpdate(req.params.id, { title, description }, { new: true });
+        if (!updatedHabit) return res.status(404).json({ message: 'Habit not found' });
+        res.status(200).json(updatedHabit);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error updating habit', error });
     }
 };
 
-// Delete a habit
+// Delete habit by ID
 export const deleteHabit = async (req, res) => {
     try {
-        // Ensure the ID is trimmed and properly formatted
-        const id = req.params.id ? req.params.id.trim() : null;
-        console.log(`Attempting to delete habit with ID: ${id}`); // Log the ID
-
-        // Check if ID is valid before querying the database
-        if (!id) {
-            return res.status(400).json({ message: 'Invalid habit ID' });
-        }
-
-        const habit = await Habit.findByIdAndDelete(id);
-
-        if (!habit) {
-            return res.status(404).json({ message: 'Habit not found' });
-        }
-        res.status(204).send(); // No content
+        const deletedHabit = await Habit.findByIdAndDelete(req.params.id);
+        if (!deletedHabit) return res.status(404).json({ message: 'Habit not found' });
+        res.status(200).json({ message: 'Habit deleted successfully' });
     } catch (error) {
-        console.error('Error deleting habit:', error); // Log the error
+        console.error(error);
         res.status(500).json({ message: 'Error deleting habit', error });
     }
 };
