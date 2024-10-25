@@ -53,12 +53,23 @@ export const updateHabit = async (req, res) => {
 // Delete a habit
 export const deleteHabit = async (req, res) => {
     try {
-        const habit = await Habit.findByIdAndDelete(req.params.id);
+        // Ensure the ID is trimmed and properly formatted
+        const id = req.params.id ? req.params.id.trim() : null;
+        console.log(`Attempting to delete habit with ID: ${id}`); // Log the ID
+
+        // Check if ID is valid before querying the database
+        if (!id) {
+            return res.status(400).json({ message: 'Invalid habit ID' });
+        }
+
+        const habit = await Habit.findByIdAndDelete(id);
+
         if (!habit) {
             return res.status(404).json({ message: 'Habit not found' });
         }
         res.status(204).send(); // No content
     } catch (error) {
+        console.error('Error deleting habit:', error); // Log the error
         res.status(500).json({ message: 'Error deleting habit', error });
     }
 };
